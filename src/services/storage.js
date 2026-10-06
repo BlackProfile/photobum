@@ -4,25 +4,43 @@ const DB_NAME = 'DazzEventDB'
 const STORE_NAME = 'photos'
 const DB_VERSION = 1
 
-// Web BroadcastChannel for instant cross-tab sync
-const syncChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('dazzevent_sync') : null
+// Web BroadcastChannel safe check for iOS Safari
+function getSyncChannel() {
+  if (typeof window !== 'undefined' && typeof window.BroadcastChannel !== 'undefined') {
+    try {
+      return new BroadcastChannel('dazzevent_sync')
+    } catch (e) {
+      return null
+    }
+  }
+  return null
+}
+
+const syncChannel = getSyncChannel()
 
 /**
- * Open IndexedDB helper
+ * Open IndexedDB helper (safe on iOS Safari Private Browsing)
  */
 function openDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION)
-    request.onupgradeneeded = (e) => {
-      const db = e.target.result
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' })
-        store.createIndex('event_id', 'event_id', { unique: false })
-        store.createIndex('created_at', 'created_at', { unique: false })
-      }
+    if (typeof window === 'undefined' || typeof window.indexedDB === 'undefined') {
+      return resolve(null)
     }
-    request.onsuccess = () => resolve(request.result)
-    request.onerror = () => reject(request.error)
+    try {
+      const request = indexedDB.open(DB_NAME, DB_VERSION)
+      request.onupgradeneeded = (e) => {
+        const db = e.target.result
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' })
+          store.createIndex('event_id', 'event_id', { unique: false })
+          store.createIndex('created_at', 'created_at', { unique: false })
+        }
+      }
+      request.onsuccess = () => resolve(request.result)
+      request.onerror = () => resolve(null)
+    } catch (err) {
+      resolve(null)
+    }
   })
 }
 

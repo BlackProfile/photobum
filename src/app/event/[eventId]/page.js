@@ -18,10 +18,21 @@ import {
   DEFAULT_EVENT,
 } from '../../../services/storage';
 
-export default function EventPage({ params }) {
-  // Unwrap Next.js dynamic params
-  const unwrappedParams = use(params);
-  const eventId = unwrappedParams.eventId || 'celebration-2026';
+function EventPageContent({ params }) {
+  // Safe param unwrapping for Next.js and iOS Safari
+  let eventId = 'celebration-2026';
+  try {
+    if (params) {
+      if (typeof params.then === 'function') {
+        const p = use(params);
+        if (p?.eventId) eventId = p.eventId;
+      } else if (params.eventId) {
+        eventId = params.eventId;
+      }
+    }
+  } catch (e) {
+    if (params?.eventId) eventId = params.eventId;
+  }
 
   // State
   const [event, setEvent] = useState({ ...DEFAULT_EVENT, id: eventId });
@@ -233,5 +244,13 @@ export default function EventPage({ params }) {
         </div>
       )}
     </div>
+  );
+}
+
+export default function EventPage(props) {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', background: '#090a0f', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Memuat Album Acara...</div>}>
+      <EventPageContent {...props} />
+    </Suspense>
   );
 }

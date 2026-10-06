@@ -69,16 +69,23 @@ export default function CameraView({
           currentStream.getTracks().forEach((track) => track.stop())
         }
 
-        const constraints = {
-          video: {
-            facingMode: { ideal: facingMode },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-          },
-          audio: false,
+        // Safe constraints for iOS Safari WebKit
+        let newStream = null
+        try {
+          newStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: { ideal: facingMode },
+            },
+            audio: false,
+          })
+        } catch (firstErr) {
+          // Fallback to basic video constraint if ideal facingMode fails on iOS
+          newStream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false,
+          })
         }
 
-        const newStream = await navigator.mediaDevices.getUserMedia(constraints)
         currentStream = newStream
         setStream(newStream)
 
@@ -89,8 +96,8 @@ export default function CameraView({
         console.error('Kamera gagal diakses:', err)
         setCameraError(
           err.name === 'NotAllowedError'
-            ? 'Izin kamera ditolak. Silakan izinkan akses kamera di pengaturan browser.'
-            : 'Tidak dapat menemukan kamera pada perangkat ini. Anda tetap bisa upload foto dari galeri!'
+            ? 'Izin kamera ditolak. Silakan izinkan akses kamera di pengaturan browser Safari iPhone Anda.'
+            : 'Kamera tidak dapat diakses saat ini. Anda tetap bisa memilih foto dari galeri HP!'
         )
       }
     }
