@@ -21,6 +21,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Sliders,
+  Mic,
+  MicOff,
+  Play,
 } from 'lucide-react'
 import { DAZZ_PRESETS, getPresetById } from '../filters/presets'
 import { renderPhotoWithPreset, formatRetroDate } from '../filters/filterRenderer'
@@ -55,6 +58,62 @@ export default function CameraView({
   const [guestName, setGuestName] = useState(() => localStorage.getItem('dazzevent_guest_name') || '')
   const [guestNote, setGuestNote] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+
+  // Voice note recording state (10s max)
+  const [isRecordingAudio, setIsRecordingAudio] = useState(false)
+  const [recordedAudioUrl, setRecordedAudioUrl] = useState(null)
+  const [recordingSeconds, setRecordingSeconds] = useState(0)
+  const mediaRecorderRef = useRef(null)
+  const audioChunksRef = useRef([])
+
+  // Toggle audio recording
+  const startRecordingAudio = async () => {
+    try {
+      audioChunksRef.current = []
+      const micStream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const recorder = new MediaRecorder(micStream)
+      mediaRecorderRef.current = recorder
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data)
+      }
+
+      recorder.onstop = () => {
+        micStream.getTracks().forEach((track) => track.stop())
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          setRecordedAudioUrl(reader.result)
+        }
+        reader.readAsDataURL(audioBlob)
+        setIsRecordingAudio(false)
+      }
+
+      recorder.start()
+      setIsRecordingAudio(true)
+      setRecordingSeconds(0)
+
+      // Auto stop after 10 seconds
+      let sec = 0
+      const timer = setInterval(() => {
+        sec++
+        setRecordingSeconds(sec)
+        if (sec >= 10) {
+          clearInterval(timer)
+          if (recorder.state === 'recording') recorder.stop()
+        }
+      }, 1000)
+    } catch (err) {
+      console.warn('Mic access error:', err)
+      showToast('Izin mikrofon diperlukan untuk merekam pesan suara', 'error')
+    }
+  }
+
+  const stopRecordingAudio = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop()
+    }
+  }
 
   const activePreset = getPresetById(selectedPresetId)
 
@@ -232,6 +291,7 @@ export default function CameraView({
         guest_name: nameToSave,
         guest_note: guestNote.trim(),
         preset_id: selectedPresetId,
+        voice_note_url: recordedAudioUrl || null,
       })
 
       // Celebration confetti
@@ -329,6 +389,72 @@ export default function CameraView({
                   onChange={(e) => setGuestNote(e.target.value)}
                   maxLength={160}
                 />
+              </div>
+
+              {/* Voice Note Recorder (10s Audio Guestbook) */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 14px',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid var(--border-subtle)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      background: isRecordingAudio ? '#ef4444' : 'rgba(245, 158, 11, 0.15)',
+                      color: isRecordingAudio ? '#fff' : '#f59e0b',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Mic size={16} />
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.84rem', fontWeight: 600, color: '#fff', display: 'block' }}>
+                      {isRecordingAudio ? `Merekam... (${recordingSeconds}s / 10s)` : recordedAudioUrl ? 'Pesan Suara Terlampir' : 'Rekam Pesan Suara (10s)'}
+                    </span>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
+                      {recordedAudioUrl ? 'Suara siap dikirim bersama foto' : 'Tinggalkan doa atau tawa untuk pengantin'}
+                    </span>
+                  </div>
+                </div>
+
+                {isRecordingAudio ? (
+                  <button
+                    type="button"
+                    onClick={stopRecordingAudio}
+                    className="btn-danger"
+                    style={{ padding: '6px 12px', fontSize: '0.78rem', borderRadius: 'var(--radius-full)' }}
+                  >
+                    Selesai
+                  </button>
+                ) : recordedAudioUrl ? (
+                  <button
+                    type="button"
+                    onClick={() => setRecordedAudioUrl(null)}
+                    style={{ color: '#ef4444', fontSize: '0.78rem', background: 'none', border: 'none', cursor: 'pointer' }}
+                  >
+                    Hapus
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={startRecordingAudio}
+                    className="btn-secondary"
+                    style={{ padding: '6px 12px', fontSize: '0.78rem' }}
+                  >
+                    Mulai Rekam
+                  </button>
+                )}
               </div>
 
               <div className="review-action-row">

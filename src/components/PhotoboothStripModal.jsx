@@ -8,6 +8,8 @@ const STRIP_THEMES = [
   { id: 'classic-white', name: 'Classic White', bg: '#fdfdfd', border: '#e2e8f0', text: '#0f172a', sub: '#64748b' },
   { id: 'vintage-kraft', name: 'Vintage Film', bg: '#1c1917', border: '#44403c', text: '#f59e0b', sub: '#a8a29e' },
   { id: 'cyber-neon', name: 'Cyber Party', bg: '#090a10', border: '#3b82f6', text: '#38bdf8', sub: '#f43f5e' },
+  { id: 'wedding-blush', name: 'Wedding Blush', bg: '#fff1f2', border: '#fecdd3', text: '#9f1239', sub: '#fb7185' },
+  { id: 'lavender-dream', name: 'Dreamy Lilac', bg: '#2e1065', border: '#581c87', text: '#e9d5ff', sub: '#c084fc' },
 ];
 
 export default function PhotoboothStripModal({

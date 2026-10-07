@@ -231,6 +231,32 @@ function HostMultiEventHub() {
     }
   };
 
+  // Export Guestbook & Photos Metadata as CSV
+  const handleExportCSV = () => {
+    if (photos.length === 0) {
+      showToast('Belum ada data untuk diekspor', 'error');
+      return;
+    }
+
+    const headers = ['ID', 'Nama Tamu', 'Ucapan & Doa', 'Preset Kamera', 'Jumlah Like', 'Waktu'];
+    const rows = photos.map((p, idx) => [
+      idx + 1,
+      `"${(p.guest_name || '').replace(/"/g, '""')}"`,
+      `"${(p.guest_note || '').replace(/"/g, '""')}"`,
+      p.preset_id || 'none',
+      p.likes || 0,
+      `"${new Date(p.created_at).toLocaleString('id-ID')}"`,
+    ]);
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Buku_Tamu_${selectedEvent.title.replace(/\s+/g, '_')}.csv`;
+    link.click();
+    showToast('Buku Tamu (.CSV) berhasil diunduh!', 'success');
+  };
+
   // Reset photos in event
   const handleClearPhotos = async () => {
     if (window.confirm('Yakin ingin mereset seluruh foto di album acara ini?')) {
@@ -413,6 +439,16 @@ function HostMultiEventHub() {
                   </h2>
 
                   <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                      className="btn-secondary"
+                      style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+                      onClick={handleExportCSV}
+                      disabled={photos.length === 0}
+                    >
+                      <Download size={16} />
+                      <span>Ekspor CSV</span>
+                    </button>
+
                     <button
                       className="btn-secondary"
                       style={{ padding: '8px 16px', fontSize: '0.85rem' }}

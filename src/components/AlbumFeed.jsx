@@ -20,6 +20,8 @@ import {
   ChevronRight,
   MessageCircle,
   Layout,
+  Volume2,
+  Play,
 } from 'lucide-react'
 import { DAZZ_PRESETS, getPresetById } from '../filters/presets'
 import { toggleLikePhoto, isPhotoLiked } from '../services/storage'
@@ -484,6 +486,33 @@ export default function AlbumFeed({
                 <div className="drawer-note-quote">
                   <MessageCircle size={18} color="#ff7a00" />
                   <p>"{selectedPhoto.guest_note}"</p>
+                </div>
+              )}
+
+              {/* Voice Note Audio Player */}
+              {selectedPhoto.voice_note_url && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px 16px',
+                    borderRadius: 'var(--radius-md)',
+                    background: 'rgba(245, 158, 11, 0.1)',
+                    border: '1px solid rgba(245, 158, 11, 0.3)',
+                  }}
+                >
+                  <Volume2 size={20} color="#f59e0b" />
+                  <div style={{ flex: 1 }}>
+                    <span style={{ fontSize: '0.84rem', fontWeight: 600, color: '#fff', display: 'block' }}>
+                      Pesan Suara dari {selectedPhoto.guest_name}
+                    </span>
+                    <audio
+                      controls
+                      src={selectedPhoto.voice_note_url}
+                      style={{ width: '100%', height: '32px', marginTop: '6px' }}
+                    />
+                  </div>
                 </div>
               )}
 

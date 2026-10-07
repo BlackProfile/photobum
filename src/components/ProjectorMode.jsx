@@ -92,6 +92,33 @@ export default function ProjectorMode({
     }
   }
 
+  const [isRaffleActive, setIsRaffleActive] = useState(false)
+  const [winnerPhoto, setWinnerPhoto] = useState(null)
+  const [isSpinning, setIsSpinning] = useState(false)
+
+  // Start Door-Prize Lucky Draw
+  const runLuckyDraw = () => {
+    if (photos.length === 0) return
+    setIsRaffleActive(true)
+    setIsSpinning(true)
+    setWinnerPhoto(null)
+
+    let counter = 0
+    const totalSpins = 25
+    const spinTimer = setInterval(() => {
+      const randomIdx = Math.floor(Math.random() * photos.length)
+      setCurrentIndex(randomIdx)
+      counter++
+      if (counter >= totalSpins) {
+        clearInterval(spinTimer)
+        setIsSpinning(false)
+        const finalWinner = photos[Math.floor(Math.random() * photos.length)]
+        setWinnerPhoto(finalWinner)
+        setCurrentIndex(photos.findIndex((p) => p.id === finalWinner.id))
+      }
+    }, 120)
+  }
+
   const currentPhoto = photos[currentIndex] || photos[0]
   const preset = currentPhoto ? getPresetById(currentPhoto.preset_id) : null
 
@@ -116,6 +143,19 @@ export default function ProjectorMode({
         )}
 
         <div className="projector-header-actions">
+          {/* Doorprize Trigger Button */}
+          <button
+            id="projector-raffle-btn"
+            className="btn-primary"
+            style={{ padding: '7px 14px', fontSize: '0.82rem', background: '#f59e0b', color: '#000' }}
+            onClick={runLuckyDraw}
+            disabled={isSpinning || photos.length === 0}
+            title="Undi Door-Prize dari Tamu"
+          >
+            <Sparkles size={16} />
+            <span>{isSpinning ? 'Mengundi...' : 'Undi Doorprize'}</span>
+          </button>
+
           <button
             id="projector-fs-btn"
             className="projector-icon-btn"
@@ -137,6 +177,44 @@ export default function ProjectorMode({
 
       {/* Main Slideshow Stage */}
       <div className="projector-stage">
+        {/* Doorprize Winner Banner Overlay */}
+        {isRaffleActive && winnerPhoto && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '20px',
+              zIndex: 50,
+              background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+              color: '#000',
+              padding: '16px 36px',
+              borderRadius: '9999px',
+              boxShadow: '0 10px 40px rgba(245, 158, 11, 0.6)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              fontWeight: 800,
+              fontSize: '1.4rem',
+              animation: 'bounce 0.8s infinite alternate',
+            }}
+          >
+            <span>🎉 SELAMAT KEPADA: {winnerPhoto.guest_name.toUpperCase()}! 🎉</span>
+            <button
+              onClick={() => setIsRaffleActive(false)}
+              style={{
+                background: 'rgba(0, 0, 0, 0.2)',
+                border: 'none',
+                borderRadius: '50%',
+                padding: '4px',
+                cursor: 'pointer',
+                color: '#fff',
+                marginLeft: '8px',
+              }}
+            >
+              <X size={18} />
+            </button>
+          </div>
+        )}
+
         {currentPhoto ? (
           <div className="projector-slide" key={currentPhoto.id}>
             <div className="projector-photo-frame">
