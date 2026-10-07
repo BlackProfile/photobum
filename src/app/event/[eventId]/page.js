@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, use, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import { useParams } from 'next/navigation';
 import Navbar from '../../../components/Navbar';
 import AlbumFeed from '../../../components/AlbumFeed';
 import CameraView from '../../../components/CameraView';
@@ -18,21 +19,9 @@ import {
   DEFAULT_EVENT,
 } from '../../../services/storage';
 
-function EventPageContent({ params }) {
-  // Safe param unwrapping for Next.js and iOS Safari
-  let eventId = 'celebration-2026';
-  try {
-    if (params) {
-      if (typeof params.then === 'function') {
-        const p = use(params);
-        if (p?.eventId) eventId = p.eventId;
-      } else if (params.eventId) {
-        eventId = params.eventId;
-      }
-    }
-  } catch (e) {
-    if (params?.eventId) eventId = params.eventId;
-  }
+function EventPageContent() {
+  const routeParams = useParams();
+  const eventId = routeParams?.eventId || 'celebration-2026';
 
   // State
   const [event, setEvent] = useState({ ...DEFAULT_EVENT, id: eventId });
