@@ -295,10 +295,37 @@ export async function savePhoto(photoItem) {
     created_at: new Date().toISOString(),
   }
 
-  // 1. Try Supabase cloud upload
+  let photoUrlToStore = photoItem.photo_url
+
+  // 1. Try Supabase cloud upload (Storage + Database)
   const supabase = getSupabase()
   if (supabase) {
     try {
+      // If photo_url is base64 data, upload to Supabase Storage bucket 'event-photos'
+      if (photoItem.photo_url && photoItem.photo_url.startsWith('data:image/')) {
+        try {
+          const res = await fetch(photoItem.photo_url)
+          const blob = await res.blob()
+          const fileName = `${newPhoto.event_id}/${newPhoto.id}.jpg`
+          
+          const { data: uploadData, error: uploadErr } = await supabase.storage
+            .from('event-photos')
+            .upload(fileName, blob, { contentType: 'image/jpeg', upsert: true })
+
+          if (!uploadErr && uploadData) {
+            const { data: publicUrlData } = supabase.storage
+              .from('event-photos')
+              .getPublicUrl(fileName)
+            if (publicUrlData?.publicUrl) {
+              photoUrlToStore = publicUrlData.publicUrl
+            }
+          }
+        } catch (storageErr) {
+          console.warn('Supabase storage upload error, fallback to data url:', storageErr)
+        }
+      }
+
+      newPhoto.photo_url = photoUrlToStore
       await supabase.from('photos').insert(newPhoto)
     } catch (err) {
       console.warn('Supabase savePhoto error:', err)
@@ -308,8 +335,10 @@ export async function savePhoto(photoItem) {
   // 2. Always persist locally in IndexedDB for reliability
   try {
     const db = await openDB()
-    const tx = db.transaction(STORE_NAME, 'readwrite')
-    tx.objectStore(STORE_NAME).put(newPhoto)
+    if (db) {
+      const tx = db.transaction(STORE_NAME, 'readwrite')
+      tx.objectStore(STORE_NAME).put(newPhoto)
+    }
   } catch (err) {
     console.warn('IndexedDB put error:', err)
   }

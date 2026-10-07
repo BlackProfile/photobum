@@ -4,15 +4,19 @@ import { createClient } from '@supabase/supabase-js'
 const SUPABASE_URL_KEY = 'dazzevent_supabase_url'
 const SUPABASE_KEY_KEY = 'dazzevent_supabase_key'
 
+// Default Supabase project credentials
+const DEFAULT_SUPABASE_URL = 'https://zywehpyhznpcybuzseto.supabase.co'
+const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5d2VocHloem5wY3lidXpzZXRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyODc2MDgsImV4cCI6MjEwNjg2MzYwOH0.iKMlvaE1BVDSNPEhpYd4YDczR0XpdtzVBDpBDnj5Aic'
+
 export function getStoredSupabaseConfig() {
   if (typeof window === 'undefined') {
     return {
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-      key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL,
+      key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_KEY,
     }
   }
-  const url = localStorage.getItem(SUPABASE_URL_KEY) || process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-  const key = localStorage.getItem(SUPABASE_KEY_KEY) || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  const url = localStorage.getItem(SUPABASE_URL_KEY) || process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL
+  const key = localStorage.getItem(SUPABASE_KEY_KEY) || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_KEY
   return { url, key }
 }
 
