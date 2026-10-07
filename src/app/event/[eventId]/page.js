@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, use } from 'react';
+import React, { useState, useEffect, useCallback, use, Suspense } from 'react';
 import Navbar from '../../../components/Navbar';
 import AlbumFeed from '../../../components/AlbumFeed';
 import CameraView from '../../../components/CameraView';
