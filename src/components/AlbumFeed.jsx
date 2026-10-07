@@ -19,9 +19,11 @@ import {
   ChevronLeft,
   ChevronRight,
   MessageCircle,
+  Layout,
 } from 'lucide-react'
 import { DAZZ_PRESETS, getPresetById } from '../filters/presets'
 import { toggleLikePhoto, isPhotoLiked } from '../services/storage'
+import PhotoboothStripModal from './PhotoboothStripModal'
 
 export default function AlbumFeed({
   event,
@@ -36,6 +38,7 @@ export default function AlbumFeed({
   const [activeFilter, setActiveFilter] = useState('all') // 'all' | 'popular' | presetId
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedPhoto, setSelectedPhoto] = useState(null)
+  const [isStripModalOpen, setIsStripModalOpen] = useState(false)
   const [likedPhotoIds, setLikedPhotoIds] = useState(() => {
     const map = {}
     photos.forEach((p) => {
@@ -206,6 +209,22 @@ export default function AlbumFeed({
               <Camera size={22} />
               <span>Jepret Foto (Dazz Cam)</span>
             </button>
+
+            {photos.length >= 2 && (
+              <button
+                id="hero-strip-btn"
+                className="btn-secondary hero-btn-lg"
+                onClick={() => setIsStripModalOpen(true)}
+                style={{
+                  background: 'rgba(245, 158, 11, 0.08)',
+                  borderColor: 'rgba(245, 158, 11, 0.3)',
+                  color: '#f59e0b',
+                }}
+              >
+                <Layout size={20} />
+                <span>Bikin Photo Strip</span>
+              </button>
+            )}
 
             {isHost && (
               <>
@@ -516,6 +535,16 @@ export default function AlbumFeed({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Photobooth Strip Modal */}
+      {isStripModalOpen && (
+        <PhotoboothStripModal
+          event={event}
+          photos={photos}
+          onClose={() => setIsStripModalOpen(false)}
+          showToast={showToast}
+        />
       )}
     </div>
   )

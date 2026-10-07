@@ -1297,6 +1297,41 @@
   overflow: hidden;
 }
 
+.projector-reactions-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 40;
+}
+
+.floating-projector-emoji {
+  position: absolute;
+  bottom: 100px;
+  font-size: 3rem;
+  animation: float-up-fade 2.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6));
+}
+
+@keyframes float-up-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.6) rotate(-10deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-80px) scale(1.2) rotate(8deg);
+  }
+  80% {
+    opacity: 0.9;
+    transform: translateY(-350px) scale(1.1) rotate(-6deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-500px) scale(0.9) rotate(12deg);
+  }
+}
+
 .projector-slide {
   position: relative;
   width: 100%;

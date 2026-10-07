@@ -28,7 +28,18 @@ export default function ProjectorMode({
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [qrDataUrl, setQrDataUrl] = useState('')
   const [newPhotoAlert, setNewPhotoAlert] = useState(null)
+  const [floatingReactions, setFloatingReactions] = useState([])
   const prevCountRef = useRef(photos.length)
+
+  // Floating reaction spawner
+  const spawnReaction = (emoji) => {
+    const id = Date.now() + Math.random().toString(36).substr(2, 4)
+    const left = Math.floor(Math.random() * 70) + 15 // 15% to 85% width
+    setFloatingReactions((prev) => [...prev, { id, emoji, left }])
+    setTimeout(() => {
+      setFloatingReactions((prev) => prev.filter((r) => r.id !== id))
+    }, 2800)
+  }
 
   // Generate QR Code for projector corner
   useEffect(() => {
@@ -179,8 +190,45 @@ export default function ProjectorMode({
         </div>
       </div>
 
-      {/* Bottom Control Bar */}
+      {/* Floating Live Reactions Layer */}
+      <div className="projector-reactions-container">
+        {floatingReactions.map((item) => (
+          <span
+            key={item.id}
+            className="floating-projector-emoji"
+            style={{ left: `${item.left}%` }}
+          >
+            {item.emoji}
+          </span>
+        ))}
+      </div>
+
+      {/* Bottom Control Bar with Live Reaction Triggers */}
       <div className="projector-bottom-bar glass-panel">
+        {/* Quick Reaction Emitter for Host/Crowd */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '16px' }}>
+          <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)', fontWeight: 600 }}>REAKSI:</span>
+          {['❤️', '🔥', '🎉', '👏', '✨'].map((emoji) => (
+            <button
+              key={emoji}
+              onClick={() => spawnReaction(emoji)}
+              style={{
+                fontSize: '1.25rem',
+                background: 'rgba(255, 255, 255, 0.08)',
+                padding: '4px 8px',
+                borderRadius: '8px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                cursor: 'pointer',
+                transition: 'transform 0.15s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.2)')}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
+
         <div className="slideshow-controls">
           <button
             id="proj-prev-btn"
